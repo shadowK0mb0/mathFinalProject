@@ -1,0 +1,8 @@
+required fields for gradient descent per post:
+  1. upvotes
+  2. upvotes over time after post
+  3. time posted
+  4. comments on a post
+  5. array of comments of the post
+  6. URL
+  7. 
