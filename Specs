@@ -5,4 +5,11 @@ required fields for gradient descent per post:
   4. comments on a post
   5. array of comments of the post
   6. URL
-  7. 
+  7. port into Excel for Nick
+
+
+Who does what:
+
+Tea - Pulls data from Reddit and ports to Excel
+Gireesh - Machine Learning and Gradient Descent and Partial DiffEQs
+Nick - Excel Fun Time (EFT)
