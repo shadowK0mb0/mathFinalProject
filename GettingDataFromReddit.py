@@ -2,6 +2,7 @@ import praw
 import datetime
 import time
 import xlwt
+from apscheduler.schedulers.blocking import BlockingScheduler
 
 """  1. upvotes
   2. upvotes over time after post
@@ -21,7 +22,9 @@ def timePosted(submission):
     createdat = datetime.datetime.fromtimestamp(submission.created_utc, datetime.timezone.utc)
     return createdat
 
-
+def getPosterKarma(submission):
+    blah = submission.author
+    return blah.link_karma
 
 """full thing"""
 reddit = praw.Reddit(client_id='gSpBr0PE7XcGnw',
@@ -32,8 +35,7 @@ reddit = praw.Reddit(client_id='gSpBr0PE7XcGnw',
 
 subreddit = reddit.subreddit('pics')
 
-response = input('Print data to Excel? Answer Y/N: ')
-if response=='Y':
+def wholethingandprint():
     book = xlwt.Workbook(encoding="utf-8")
     sheet1 = book.add_sheet("Sheet 1")
     sheet1.write(0, 0, 'upvotes')
@@ -43,20 +45,19 @@ if response=='Y':
     sheet1.write(0, 4, 'url')
     sheet1.write(0, 5, 'title')
     sheet1.write(0, 6, 'lengthOfPost')
-
-inc = 1 #for use in row count
-
-for submission in subreddit.hot(limit=10):
-    upvotes = submission.score
-    posted = timePosted(submission)
-    rate = upvotesPerHour(submission,posted)
-    numComments = len(submission.comments)
-    arrayOfComments = submission.comments
-    url = submission.url
-    title = submission.title
-    lengthOfPost = len(title)
-    print(title+'('+str(lengthOfPost)+') score:'+str(upvotes)+' upvotes per hour:'+str(rate)+' has '+str(numComments)+' comments')
-    if response=='Y':
+    inc = 1 #for use in row count
+    for submission in subreddit.hot(limit=24):
+        upvotes = submission.score
+        posted = timePosted(submission)
+        rate = upvotesPerHour(submission,posted)
+        numComments = len(submission.comments)
+        arrayOfComments = submission.comments
+        url = submission.url
+        title = submission.title
+        lengthOfPost = len(title)
+        posterKarma = getPosterKarma(submission)
+        print(posterKarma)
+        #print(title+'('+str(lengthOfPost)+') score:'+str(upvotes)+' upvotes per hour:'+str(rate)+' has '+str(numComments)+' comments')
         sheet1.write(inc,0,upvotes)
         sheet1.write(inc, 1, str(posted))
         sheet1.write(inc, 2, rate)
@@ -65,5 +66,14 @@ for submission in subreddit.hot(limit=10):
         sheet1.write(inc, 5, title)
         sheet1.write(inc, 6, lengthOfPost)
         inc = inc+1
-if response=='Y':
-    book.save("RedditData.xls")
+
+    book.save("RedditData"+str(time.time())+".xls")
+
+sched = BlockingScheduler()
+wholethingandprint()
+@sched.scheduled_job('interval', seconds=1800)
+def timed_job():
+    wholethingandprint()
+
+#sched.configure(options_from_ini_file)
+sched.start()
